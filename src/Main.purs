@@ -1,22 +1,20 @@
 module Main (main) where
 
-import Prelude
+import Prelude (class Show, Unit, bind, show, (<>))
 
-import Control.Monad.Eff
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception
-import Data.Array
-import Data.Maybe
-import Data.Either
+import Data.Either (Either(..))
 
-import Oak
+import Oak (App, createApp, runApp)
 import Oak.Html ( Html, div, text, button )
-import Oak.Html.Events
-import Oak.Document
-import Oak.Cmd
-import Oak.Cmd.Http
+import Oak.Html.Events (onClick)
+import Oak.Document (DOM, appendChildNode, getElementById)
+import Oak.Cmd (Cmd, none)
+import Oak.Cmd.Http (HTTP, defaultDecode, get)
 
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show
+import Data.Generic.Rep.Show (genericShow)
 import Data.Foreign.Class (class Decode)
 
 
@@ -44,7 +42,7 @@ update (GotUser (Left message)) model = model { user = User { name: message, id:
 update msg model 
   = model
 
-next :: forall c. Msg -> Model -> Cmd (http :: HTTP) Msg
+next :: forall c. Msg -> Model -> Cmd (http :: HTTP | c) Msg
 next GetUser _
   = get "https://jsonplaceholder.typicode.com/users/1" GotUser
 next _ _ 
