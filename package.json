@@ -1,13 +1,16 @@
 {
   "private": true,
   "scripts": {
-    "build": "pulp build"
+    "build": "pulp build",
+    "web": "pulp browserify -O > app.js",
+    "web:watch": "pulp watchify main.js -o app.js"
   },
   "devDependencies": {
     "bower": "^1.8.2",
     "purescript": "^0.11.7"
   },
   "dependencies": {
-    "pulp": "^12.0.1"
+    "pulp": "^12.0.1",
+    "virtual-dom": "^2.1.1"
   }
 }

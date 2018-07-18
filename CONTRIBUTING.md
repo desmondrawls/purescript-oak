@@ -85,7 +85,7 @@ pulp build
 
 Ok, you have some compiled code but it isn't ready to run in the browser. For that you need:
 ```
-pulp browserify -O app.js
+pulp browserify -O > app.js
 ```
 
 Serve the js cold on an html platter. Put this in `index.html`:
