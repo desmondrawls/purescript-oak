@@ -9,3 +9,4 @@
 /.psa*
 /dist/*
 yarn-error.log
+app.js

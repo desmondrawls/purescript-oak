@@ -6,103 +6,62 @@ import Control.Monad.Eff
 import Control.Monad.Eff.Exception
 import Data.Array
 import Data.Maybe
+import Data.Either
 
 import Oak
 import Oak.Html ( Html, div, text, button )
 import Oak.Html.Events
 import Oak.Document
 import Oak.Cmd
+import Oak.Cmd.Http
 
-type Project =
-    { id :: Int,
-      client :: String,
-      name :: String
-      }
-
-type Pivot =
-    { firstName :: String,
-    lastName :: String
-    }
-
-type Model =
-  { number :: Int,
-    projects :: Array Project,
-    pivots :: Array Pivot,
-    selectedProject :: Maybe Int
-  }
-
-data Msg
-  = Inc
-  | Dec
-  | SelectProject Int
-
-projectView :: Project -> Html Msg
-projectView project =
-    div []
-      [ div [ onClick (SelectProject project.id) ] [ text project.name ]
-      , div [] [ text ("Client: " <> project.client) ]
-      ]
-
-pivotView :: Pivot -> Html Msg
-pivotView pivot =
-    div [] [ text (pivot.firstName <> " " <> pivot.lastName) ]
-
-projectNameView :: Maybe Project -> String
-projectNameView Nothing = "Unknown project"
-projectNameView (Just project) = project.name <> " with " <> project.client
-
-selectedProjectView :: Array Project -> Maybe Int -> Html Msg
-selectedProjectView _ Nothing = 
-    div [] [ text "Please select a project." ]
-selectedProjectView [] _ =
-    div [] [ text "You have no projects to allocate to! Call some clients." ]
-selectedProjectView projects (Just projectID) =
-    div [] [ text $ "Who wants to work on " <> projectNameView project ]
-    where project = find (\project -> project.id == projectID) projects
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show
+import Data.Foreign.Class (class Decode)
 
 
+data User 
+  = User { name :: String, id :: Int}
+  
+instance showUser :: Show User where 
+  show = genericShow
 
-view :: Model -> Html Msg
-view model =
-  div []
-    [ div [] [ text "Projects"
-    , div [] (map projectView model.projects) ]
-    , div [] [ text "Pivots"
-    , div [] (map pivotView model.pivots) ]
-    , selectedProjectView model.projects model.selectedProject
-    ]
+derive instance genericUser :: Generic User _
 
+instance decodeUser :: Decode User where
+  decode = defaultDecode
 
-next :: Msg -> Model -> Cmd () Msg
-next _ _ = none
+data Msg 
+  = GetUser 
+  | GotUser (Either String User)
 
+type Model = 
+  { user :: User }
+  
 update :: Msg -> Model -> Model
-update Inc model =
-  model { number = model.number + 1 }
-update Dec model =
-  model { number = model.number - 1 }
-update (SelectProject project) model =
-  model { selectedProject = Just project }
+update (GotUser (Right user)) model = model { user = user }
+update (GotUser (Left message)) model = model { user = User { name: message, id: 0 } }
+update msg model 
+  = model
 
-initialProjects :: Array Project
-initialProjects = [ { id: 1, client: "Insurance Inc.", name: "Replace Vehicle" },
-    { id: 2, client: "CoreLogic", name: "Store Front" },
-    { id: 3, client: "Cool Ass Startup", name: "Replace Vehicle" }]
-
-initialPivots :: Array Pivot
-initialPivots = [ { firstName: "Jonathan", lastName: "Sirlin" },
-    { firstName: "Joe", lastName: "Greubel" },
-    { firstName: "Desmond", lastName: "Pompa Alarcon Rawls" },
-    { firstName: "Dan", lastName: "Kaplan" }]
+next :: forall c. Msg -> Model -> Cmd (http :: HTTP) Msg
+next GetUser _
+  = get "https://jsonplaceholder.typicode.com/users/1" GotUser
+next _ _ 
+  = none
 
 init :: Model
-init =
-  { number: 0,
-  projects: initialProjects,
-  pivots: initialPivots,
-  selectedProject: Nothing }
+init = 
+  { user: (User { name: "no name", id: 0 }) }
 
-app :: App () Model Msg
+view :: Model -> Html Msg
+view model 
+  = div [] [ text "HTTP practice app" 
+           , button [ onClick GetUser ] [ text "make some http" ]
+           , div [] [ text ("The current user is " <> show model.user) ]
+           ]
+
+app :: App (http :: HTTP) Model Msg
 app = createApp
   { init: init
   , view: view
