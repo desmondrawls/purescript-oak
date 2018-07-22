@@ -19,11 +19,16 @@ import Data.Maybe (Maybe(..))
 import Data.Function.Uncurried
   ( Fn4
   , runFn4
+  , Fn3
+  , runFn3
   )
 
 import Oak.Cmd
 
 foreign import data HTTP :: Command
+foreign import data NativeOptions :: Type
+
+foreign import emptyOptions :: NativeOptions
 
 type HttpOptions a
   = Array (HttpOption a)
@@ -134,7 +139,42 @@ fetch :: ∀ c m a t.
     => String
     -> (Either String a -> m)
     -> Cmd (http :: HTTP | c) m
-fetch url msgCtor = (runFn4 getImpl) Left Right url f
+fetch url msgCtor options = (runFn4 fetchImpl) Left Right url (combineOptions options) f
   where
     f (Left err) = msgCtor $ Left err
     f (Right str) = msgCtor $ makeDecoder str
+
+foreign import concatOptionImpl ::
+  Fn3 String String NativeOptions NativeOptions
+
+concatHeader ::
+    Header
+    -> NativeOptions
+    -> NativeOptions
+concatHeader (ContentType) options =
+
+combineHeaders ::
+  Array Header
+    -> NativeOptions
+combineHeaders headers options =
+  foldr concatHeader emptyOptions options
+
+concatOption :: ∀ body eff.
+    HttpOption body
+    -> NativeOptions
+    -> NativeOptions
+concatOption Headers options = combineHeaders
+concatOption handler (Style styles) attrs =
+  N.concatSimpleAttr "style" (stringifyStyles styles) attrs
+concatOption handler (BooleanAttribute name b) attrs =
+  N.concatBooleanAttr name b attrs
+concatOption handler (DataAttribute name val) attrs =
+  N.concatDataAttr name val attrs
+concatOption handler (KeyPressEventHandler name f) attrs =
+  N.concatHandlerFun name (\e -> handler (f e)) attrs
+
+combineOptions :: ∀ body.
+  Array (HttpOption body)
+    -> NativeOptions
+combineOptions options handler =
+  foldr concatOption emptyOptions options
