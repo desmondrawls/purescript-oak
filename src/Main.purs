@@ -59,10 +59,9 @@ update msg model = model
 
 next :: forall c. Msg -> Model -> Cmd (http :: HTTP | c) Msg
 next GetUser _
-  = let JSONHeader = (Headers [ContentType ApplicationJSON]) in
-    let POSTBody = (POST { body: (Address { street: "wassup", city: "cool" }) }) in
-    fetch "https://jsonplaceholder.typicode.com/users/1" options GotUser where
-        options = [JSONHeader, POSTBody]
+  = fetch "https://jsonplaceholder.typicode.com/users/1" options GotUser where
+    options = [(Headers [ContentType ApplicationJSON])
+               , (POST { body: (Address { street: "wassup", city: "cool" }) })]
 next _ _ 
   = none
 

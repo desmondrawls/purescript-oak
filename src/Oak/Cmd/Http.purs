@@ -7,7 +7,6 @@ module Oak.Cmd.Http
   , Credentials
   , defaultDecode
   , defaultEncode
-  , get
   , fetch
   ) where
 
@@ -25,8 +24,6 @@ import Data.Either (Either(..))
 import Data.Function.Uncurried
   ( Fn3
   , runFn3
-  , Fn4
-  , runFn4
   , Fn5
   , runFn5
   )
@@ -42,20 +39,25 @@ type HttpOptions a = Array (HttpOption a)
 
 -- Currently we only support JSON
 -- TODO: support media types other than JSON
-data MediaType = ApplicationJSON
+data MediaType
+  = ApplicationJSON
   | ApplicationXML
   | TextHTML
   | TextPlain
 
-data Header = ContentType MediaType
+data Header
+  = ContentType MediaType
   | Accept MediaType
   | Authorization String
 
-data Credentials = CredentialsOmit
+data Credentials
+  = CredentialsOmit
   | CredentialsSameOrigin
   | CredentialsInclude
 
-data HttpOption a = POST { body :: a }
+data HttpOption a
+  = POST { body :: a }
+  | GET
   | Headers (Array Header)
   | Credentials
 
@@ -111,26 +113,6 @@ makeDecoder json =
     Left err -> Left (show err)
     Right result -> Right result
 
-foreign import getImpl :: ∀ c m a.
-  Fn4
-    (String -> Either String a)
-    (a -> Either String a)
-    String
-    (Either String a -> m)
-    (Cmd (http :: HTTP | c) m)
-
-get :: ∀ c m a t.
-  Generic a t
-    => GenericDecode t
-    => Decode a
-    => String
-    -> (Either String a -> m)
-    -> Cmd (http :: HTTP | c) m
-get url msgCtor = (runFn4 getImpl) Left Right url f
-  where
-    f (Left err) = msgCtor $ Left err
-    f (Right str) = msgCtor $ makeDecoder str
-
 foreign import fetchImpl :: ∀ c m a.
   Fn5
     (String -> Either String a)
@@ -154,6 +136,18 @@ fetch url options msgCtor = (runFn5 fetchImpl) Left Right url (combineOptions op
   where
     f (Left err) = msgCtor $ Left err
     f (Right str) = msgCtor $ makeDecoder str
+
+-- fetch doesn't understand types without a body
+--get :: ∀ c m a t body e.
+--  Generic a t
+--    => GenericDecode t
+--    => Decode a
+--    => Generic body e
+--    => GenericEncode e
+--    => String
+--    -> (Either String a -> m)
+--    -> Cmd (http :: HTTP | c) m
+--get url msgCtor = fetch url [GET] msgCtor
 
 foreign import concatOptionImpl ::
   Fn3 String String NativeOptions NativeOptions
