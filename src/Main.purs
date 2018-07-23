@@ -11,7 +11,7 @@ import Oak.Html ( Html, div, text, button )
 import Oak.Html.Events (onClick)
 import Oak.Document (DOM, appendChildNode, getElementById)
 import Oak.Cmd (Cmd, none)
-import Oak.Cmd.Http (HTTP, defaultDecode, defaultEncode, get)
+import Oak.Cmd.Http (HTTP, Header(..), HttpOption(..), MediaType(..), defaultDecode, defaultEncode, fetch)
 
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -59,7 +59,10 @@ update msg model = model
 
 next :: forall c. Msg -> Model -> Cmd (http :: HTTP | c) Msg
 next GetUser _
-  = get "https://jsonplaceholder.typicode.com/users/1" GotUser
+  = let JSONHeader = (Headers [ContentType ApplicationJSON]) in
+    let POSTBody = (POST { body: (Address { street: "wassup", city: "cool" }) }) in
+    fetch "https://jsonplaceholder.typicode.com/users/1" options GotUser where
+        options = [JSONHeader, POSTBody]
 next _ _ 
   = none
 
