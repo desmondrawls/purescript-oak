@@ -5,7 +5,7 @@ module Oak.Cmd.Http
   , get
   ) where
 
-import Prelude (show, ($))
+import Prelude (show, ($), class Show)
 
 import Control.Monad.Except (runExcept)
 import Data.Generic.Rep (class Generic)
@@ -14,8 +14,8 @@ import Data.Foreign.Generic (defaultOptions, genericDecode, genericDecodeJSON, g
 import Data.Foreign.Generic.Class (class GenericEncode, class GenericDecode)
 import Data.Foreign.Generic.Types (Options)
 import Data.Foreign (F, Foreign)
+import Data.Traversable (foldr)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
 import Data.Function.Uncurried
   ( Fn4
   , runFn4
@@ -41,6 +41,12 @@ data MediaType
   | ApplicationXML
   | TextHTML
   | TextPlain
+
+instance showMediaType :: Show MediaType where
+  show ApplicationJSON = "application/json"
+  show ApplicationXML = "application/xml"
+  show TextHTML = "text/html"
+  show TextPlain = "text/plain"
 
 data Header
   = ContentType MediaType
@@ -139,7 +145,7 @@ fetch :: ∀ c m a t.
     => String
     -> (Either String a -> m)
     -> Cmd (http :: HTTP | c) m
-fetch url msgCtor options = (runFn4 fetchImpl) Left Right url (combineOptions options) f
+fetch url msgCtor = (runFn4 fetchImpl) Left Right url f
   where
     f (Left err) = msgCtor $ Left err
     f (Right str) = msgCtor $ makeDecoder str
@@ -147,34 +153,44 @@ fetch url msgCtor options = (runFn4 fetchImpl) Left Right url (combineOptions op
 foreign import concatOptionImpl ::
   Fn3 String String NativeOptions NativeOptions
 
+foreign import concatNativeOptionsImpl ::
+  Fn3 String NativeOptions NativeOptions NativeOptions
+
 concatHeader ::
     Header
     -> NativeOptions
     -> NativeOptions
-concatHeader (ContentType) options =
+concatHeader (ContentType a) options =
+    runFn3 concatOptionImpl "Content-Type" (show a) options
+concatHeader (Accept a) options =
+    runFn3 concatOptionImpl "Accept" (show a) options
+concatHeader (Authorization a) options =
+    runFn3 concatOptionImpl "Authorization" a options
 
 combineHeaders ::
   Array Header
     -> NativeOptions
-combineHeaders headers options =
-  foldr concatHeader emptyOptions options
+combineHeaders headers =
+  foldr concatHeader emptyOptions headers
 
-concatOption :: ∀ body eff.
-    HttpOption body
+concatOption :: ∀ body t.
+  Generic body t
+    => GenericEncode t
+    => Decode body
+    => HttpOption body
     -> NativeOptions
     -> NativeOptions
-concatOption Headers options = combineHeaders
-concatOption handler (Style styles) attrs =
-  N.concatSimpleAttr "style" (stringifyStyles styles) attrs
-concatOption handler (BooleanAttribute name b) attrs =
-  N.concatBooleanAttr name b attrs
-concatOption handler (DataAttribute name val) attrs =
-  N.concatDataAttr name val attrs
-concatOption handler (KeyPressEventHandler name f) attrs =
-  N.concatHandlerFun name (\e -> handler (f e)) attrs
+concatOption (POST a) options =
+    runFn3 concatOptionImpl "body" (makeEncoder a.body) options
+--concatOption (Headers) options = combineHeaders
+concatOption _ options =
+    options
 
-combineOptions :: ∀ body.
-  Array (HttpOption body)
+combineOptions :: ∀ body t.
+  Generic body t
+    => GenericEncode t
+    => Decode body
+    => Array (HttpOption body)
     -> NativeOptions
-combineOptions options handler =
+combineOptions options =
   foldr concatOption emptyOptions options
