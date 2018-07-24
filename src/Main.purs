@@ -11,7 +11,7 @@ import Oak.Html ( Html, div, text, button )
 import Oak.Html.Events (onClick)
 import Oak.Document (DOM, appendChildNode, getElementById)
 import Oak.Cmd (Cmd, none)
-import Oak.Cmd.Http (HTTP, Header(..), HttpOption(..), MediaType(..), defaultDecode, defaultEncode, fetch)
+import Oak.Cmd.Http (HTTP, defaultDecode, defaultEncode, post)
 
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -52,16 +52,17 @@ data Msg
 type Model = 
   { user :: User }
   
+aUser :: User
+aUser = User { name: "Random Namey III", id: 0, address: Address { street: "no street", city: "no city" }}
+  
 update :: Msg -> Model -> Model
 update (GotUser (Right user)) model = model { user = user }
-update (GotUser (Left message)) model = model { user = User { name: message, id: 0, address: Address { street: "no street", city: "no city" }}}
+update (GotUser (Left message)) model = model { user = aUser }
 update msg model = model
 
 next :: forall c. Msg -> Model -> Cmd (http :: HTTP | c) Msg
 next GetUser _
-  = fetch "https://jsonplaceholder.typicode.com/users/1" options GotUser where
-    options = [(Headers [ContentType ApplicationJSON])
-               , (POST { body: (Address { street: "wassup", city: "cool" }) })]
+  = post "http://localhost:8080" aUser GotUser
 next _ _ 
   = none
 
