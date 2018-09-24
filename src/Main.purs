@@ -1,6 +1,9 @@
 module Main (main) where
 
 import Prelude
+import Data.Array
+import Data.Tuple
+import Data.List
 
 import Control.Monad.Eff
 import Control.Monad.Eff.Exception
@@ -26,11 +29,23 @@ data Msg
 
 view :: Model -> Html Msg
 view model =
-    div [ id_ "wassuppyoo"] 
-        [ div [] [ text  "dis a red circle yo" ]
-        , svg [ height "600", width "900", id_ "blaa" ] 
-                [ circle [ cx "50", cy "50", r "40", fill "red" ] []]]
+    div [] 
+        [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
+        , svg [ height 600, width 1200 ] 
+              manyCircles
+        ]
 
+manyCircles :: Array (Html Msg)
+manyCircles =
+    map circleView centers
+
+circleView :: (Tuple Int Int) -> Html Msg
+circleView (Tuple x y) =
+    circle [ cx x, cy y, r "40", fill "red" ] []
+
+centers :: Array (Tuple Int Int)
+centers =
+   [Tuple 200 100, Tuple 400 30, Tuple 150 500]
 
 next :: Msg -> Model -> Cmd () Msg
 next _ _ = none
