@@ -147,6 +147,13 @@ coords :: ∀ msg v. Present v => v -> Attribute msg
 coords val = SimpleAttribute "coords" (present val)
 
 
+cx :: ∀ msg v. Present v => v -> Attribute msg
+cx val = SimpleAttribute "cx" (present val)
+
+
+cy :: ∀ msg v. Present v => v -> Attribute msg
+cy val = SimpleAttribute "cy" (present val)
+
 -- using data_ for the more common data-* attr use case
 -- naming this data__ (note two underscores) for lack
 -- of a better idea. I'm open to suggestions
@@ -188,6 +195,10 @@ dropzone val = SimpleAttribute "dropzone" (present val)
 
 enctype :: ∀ msg v. Present v => v -> Attribute msg
 enctype val = SimpleAttribute "enctype" (present val)
+
+
+fill :: ∀ msg v. Present v => v -> Attribute msg
+fill val = SimpleAttribute "fill" (present val)
 
 
 for :: ∀ msg v. Present v => v -> Attribute msg
@@ -316,6 +327,10 @@ poster val = SimpleAttribute "poster" (present val)
 
 preload :: ∀ msg v. Present v => v -> Attribute msg
 preload val = SimpleAttribute "preload" (present val)
+
+
+r :: ∀ msg v. Present v => v -> Attribute msg
+r val = SimpleAttribute "r" (present val)
 
 
 readonly :: ∀ msg v. Present v => v -> Attribute msg

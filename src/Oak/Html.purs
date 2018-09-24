@@ -10,6 +10,7 @@ import Oak.Html.Present
 data Html msg
   = Text String
   | Tag String (Array (Attribute msg)) (Array (Html msg))
+  | Svg String (Array (Attribute msg)) (Array (Html msg))
 
 
 text :: ∀ a msg. (Present a) => a -> Html msg
@@ -82,6 +83,10 @@ caption attrs children = Tag "caption" attrs children
 
 center :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
 center attrs children = Tag "center" attrs children
+
+
+circle :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
+circle attrs children = Svg "circle" attrs children
 
 
 cite :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
@@ -365,7 +370,7 @@ sup attrs children = Tag "sup" attrs children
 
 
 svg :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
-svg attrs children = Tag "svg" attrs children
+svg attrs children = Svg "svg" attrs children
 
 
 table :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg

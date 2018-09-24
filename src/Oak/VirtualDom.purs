@@ -29,6 +29,8 @@ render :: ∀ e h msg r.
     -> Eff ( st :: ST h | e ) N.Tree
 render h (Tag name attrs children) =
   N.render name (combineAttrs attrs h) (sequence $ map (render h) children)
+render h (Svg name attrs children) =
+  N.svg name (combineAttrs attrs h) (sequence $ map (render h) children)
 render h (Text str) = N.text str
 
 concatAttr :: ∀ msg eff.

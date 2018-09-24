@@ -1,4 +1,5 @@
 var h = require('virtual-dom/h');
+var svg = require('virtual-dom/virtual-hyperscript/svg');
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
@@ -28,6 +29,19 @@ exports.renderImpl = function(tagName, attrs, childrenEff) {
   return function() {
     var children = childrenEff();
     return h(tagName, attrs, children);
+  };
+};
+
+// foreign import svgImpl :: ∀ msg h e model.
+//   Fn3
+//     String
+//     NativeAttrs
+//     ( Eff ( st :: ST h | e ) (Array Tree) )
+//     ( Eff ( st :: ST h | e ) Tree )
+exports.svgImpl = function(tagName, attrs, childrenEff) {
+  return function() {
+    var children = childrenEff();
+    return svg(tagName, attrs, children);
   };
 };
 

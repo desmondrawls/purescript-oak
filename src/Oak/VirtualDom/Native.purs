@@ -108,3 +108,17 @@ render :: ∀ h e.
     -> Eff ( st :: ST h | e ) (Array Tree)
     -> Eff ( st :: ST h | e ) Tree
 render = runFn3 renderImpl
+
+foreign import svgImpl :: ∀ h e.
+  Fn3
+    String
+    NativeAttrs
+    ( Eff ( st :: ST h | e ) (Array Tree) )
+    ( Eff ( st :: ST h | e ) Tree )
+
+svg :: ∀ h e.
+  String
+    -> NativeAttrs
+    -> Eff ( st :: ST h | e ) (Array Tree)
+    -> Eff ( st :: ST h | e ) Tree
+svg = runFn3 svgImpl
