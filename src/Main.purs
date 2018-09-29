@@ -7,6 +7,7 @@ import Data.List
 
 import Control.Monad.Eff
 import Control.Monad.Eff.Exception
+import Control.Monad.Eff.Random (RANDOM, randomInt)
 
 import Oak
 import Oak.Html ( Html, div, svg, circle, text )
@@ -16,22 +17,36 @@ import Oak.Document
 import Oak.Cmd
 import Oak.Cmd.Http (get)
 
+type BraidedQuantity =
+    { quantity :: Int
+    , braids :: Int
+    }
 
 type Model =
-  { number :: Int
+  { braidedQuantity :: BraidedQuantity
   }
 
 
 data Msg
-  = Inc
-  | Dec
+  = PickRandomQuantity
+  | RandomResult BraidedQuantity
+
+
+quantityGenerator :: Gen BraidedQuantity
+quantityGenerator =
+    do
+      x <- randomInt 1 20
+      y <- randomInt 1 100
+      pure $ { quantity: x, braids: y }
+    
 
 
 view :: Model -> Html Msg
 view model =
     div [] 
         [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
-        , svg [ height 600, width 1200 ] 
+        , div [] [ text "The quantity: " <> model.quantity ]
+        , svg [ height 600, width 1200, onClick PickRandomQuantity ] 
               manyCircles
         ]
 
@@ -47,14 +62,16 @@ centers :: Array (Tuple Int Int)
 centers =
    [Tuple 200 100, Tuple 400 30, Tuple 150 500]
 
-next :: Msg -> Model -> Cmd () Msg
+next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
+next PickRandomQuantity model =
+  RandomResult quantityGenerator
 next _ _ = none
 
 update :: Msg -> Model -> Model
-update Inc model =
-  model { number = model.number + 1 }
-update Dec model =
-  model { number = model.number - 1 }
+update (RandomResult braid) model =
+  model { quantity = braid.quantity }
+update msg model =
+  model
 
 
 init :: Unit -> Model
