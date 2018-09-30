@@ -59,7 +59,7 @@ manyCircles randomness =
 
 circleView :: (Tuple Int Int) -> Html Msg
 circleView (Tuple x y) =
-    circle [ cx x, cy y, r "40", fill "red" ] []
+    circle [ cx (x - 30), cy (y - 20), r "40", fill "red" ] []
 
 centers :: Int -> Array (Tuple Int Int)
 centers randomness =

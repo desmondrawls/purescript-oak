@@ -3828,6 +3828,7 @@ var PS = {};
   var Data_HeytingAlgebra = PS["Data.HeytingAlgebra"];
   var Data_Int = PS["Data.Int"];
   var Data_List = PS["Data.List"];
+  var Data_Ring = PS["Data.Ring"];
   var Data_Semigroup = PS["Data.Semigroup"];
   var Data_Semiring = PS["Data.Semiring"];
   var Data_Show = PS["Data.Show"];
@@ -3918,7 +3919,7 @@ var PS = {};
       };
   };
   var circleView = function (v) {
-      return Oak_Html.circle([ Oak_Html_Attribute.cx(Oak_Html_Present.presentInt)(v.value0), Oak_Html_Attribute.cy(Oak_Html_Present.presentInt)(v.value1), Oak_Html_Attribute.r(Oak_Html_Present.presentString)("40"), Oak_Html_Attribute.fill(Oak_Html_Present.presentString)("red") ])([  ]);
+      return Oak_Html.circle([ Oak_Html_Attribute.cx(Oak_Html_Present.presentInt)(v.value0 - 30 | 0), Oak_Html_Attribute.cy(Oak_Html_Present.presentInt)(v.value1 - 20 | 0), Oak_Html_Attribute.r(Oak_Html_Present.presentString)("40"), Oak_Html_Attribute.fill(Oak_Html_Present.presentString)("red") ])([  ]);
   };
   var centers = function (randomness) {
       return spots(600)(1200)(40)(5);
