@@ -2569,11 +2569,68 @@ var PS = {};
       result[n] = i;
       return result;
     };
+  };   
+
+  //------------------------------------------------------------------------------
+  // Array size ------------------------------------------------------------------
+  //------------------------------------------------------------------------------
+
+  exports.length = function (xs) {
+    return xs.length;
+  };
+
+  //------------------------------------------------------------------------------
+  // Indexed operations ----------------------------------------------------------
+  //------------------------------------------------------------------------------
+
+  exports.indexImpl = function (just) {
+    return function (nothing) {
+      return function (xs) {
+        return function (i) {
+          return i < 0 || i >= xs.length ? nothing :  just(xs[i]);
+        };
+      };
+    };
+  };
+
+  exports.concat = function (xss) {
+    if (xss.length <= 10000) {
+      // This method is faster, but it crashes on big arrays.
+      // So we use it when can and fallback to simple variant otherwise.
+      return Array.prototype.concat.apply([], xss);
+    }
+
+    var result = [];
+    for (var i = 0, l = xss.length; i < l; i++) {
+      var xs = xss[i];
+      for (var j = 0, m = xs.length; j < m; j++) {
+        result.push(xs[j]);
+      }
+    }
+    return result;
   };
 
   exports.filter = function (f) {
     return function (xs) {
       return xs.filter(f);
+    };
+  };
+
+  //------------------------------------------------------------------------------
+  // Subarrays -------------------------------------------------------------------
+  //------------------------------------------------------------------------------
+
+  exports.slice = function (s) {
+    return function (e) {
+      return function (l) {
+        return l.slice(s, e);
+      };
+    };
+  };
+
+  exports.take = function (n) {
+    return function (l) {
+      return n < 1 ? [] : l.slice(0, n);
     };
   };
 })(PS["Data.Array"] = PS["Data.Array"] || {});
@@ -3017,8 +3074,13 @@ var PS = {};
   var Data_Unfoldable = PS["Data.Unfoldable"];
   var Partial_Unsafe = PS["Partial.Unsafe"];
   var Prelude = PS["Prelude"];
+  var index = $foreign.indexImpl(Data_Maybe.Just.create)(Data_Maybe.Nothing.value);
+  exports["index"] = index;
   exports["range"] = $foreign.range;
+  exports["length"] = $foreign.length;
+  exports["concat"] = $foreign.concat;
   exports["filter"] = $foreign.filter;
+  exports["take"] = $foreign.take;
 })(PS["Data.Array"] = PS["Data.Array"] || {});
 (function(exports) {
     "use strict";
@@ -3828,6 +3890,7 @@ var PS = {};
   var Data_HeytingAlgebra = PS["Data.HeytingAlgebra"];
   var Data_Int = PS["Data.Int"];
   var Data_List = PS["Data.List"];
+  var Data_Maybe = PS["Data.Maybe"];
   var Data_Ring = PS["Data.Ring"];
   var Data_Semigroup = PS["Data.Semigroup"];
   var Data_Semiring = PS["Data.Semiring"];
@@ -3865,23 +3928,65 @@ var PS = {};
   var update = function (v) {
       return function (model) {
           if (v instanceof GotRandom) {
-              var $14 = {};
-              for (var $15 in model) {
-                  if ({}.hasOwnProperty.call(model, $15)) {
-                      $14[$15] = model[$15];
+              var $17 = {};
+              for (var $18 in model) {
+                  if ({}.hasOwnProperty.call(model, $18)) {
+                      $17[$18] = model[$18];
                   };
               };
-              $14.randomness = v.value0;
-              return $14;
+              $17.randomness = v.value0;
+              return $17;
           };
-          var $18 = {};
-          for (var $19 in model) {
-              if ({}.hasOwnProperty.call(model, $19)) {
-                  $18[$19] = model[$19];
+          var $21 = {};
+          for (var $22 in model) {
+              if ({}.hasOwnProperty.call(model, $22)) {
+                  $21[$22] = model[$22];
               };
           };
-          $18.randomness = 1.3;
-          return $18;
+          $21.randomness = 1.3;
+          return $21;
+      };
+  };
+  var spots = function (height) {
+      return function (width) {
+          return Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(height))(function (v) {
+              return Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(width))(function (v1) {
+                  return Control_Applicative.pure(Control_Applicative.applicativeArray)(new Data_Tuple.Tuple(v1, v));
+              });
+          });
+      };
+  };
+  var or = function (b) {
+      return function (v) {
+          if (v instanceof Data_Maybe.Just) {
+              return v.value0;
+          };
+          if (v instanceof Data_Maybe.Nothing) {
+              return b;
+          };
+          throw new Error("Failed pattern match at Main line 51, column 1 - line 51, column 34: " + [ b.constructor.name, v.constructor.name ]);
+      };
+  };
+  var oddPair = function (i) {
+      return function (arr) {
+          return function (backup) {
+              var n = Data_Array.length(arr);
+              var index = function (at) {
+                  return or(backup)(Data_Array.index(arr)(at));
+              };
+              return [ index(n - i | 0), index(i - 1 | 0) ];
+          };
+      };
+  };
+  var shuffle = function (v) {
+      return function (deck) {
+          if (v === 0) {
+              return deck;
+          };
+          var subdecks = Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(Data_Array.length(deck) / 2 | 0))(function (v1) {
+              return Control_Applicative.pure(Control_Applicative.applicativeArray)(oddPair(v1)(deck)(new Data_Tuple.Tuple(200, 400)));
+          });
+          return Data_Array.take(5)(shuffle(v - 1 | 0)(Data_Array.concat(subdecks)));
       };
   };
   var next = function (v) {
@@ -3905,15 +4010,11 @@ var PS = {};
           };
       };
   };
-  var spots = function (height) {
-      return function (width) {
-          return function (radius) {
-              return function (padding) {
-                  return Data_Array.filter(fits(radius)(padding))(Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(height))(function (v) {
-                      return Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(width))(function (v1) {
-                          return Control_Applicative.pure(Control_Applicative.applicativeArray)(new Data_Tuple.Tuple(v1, v));
-                      });
-                  }));
+  var select = function (radius) {
+      return function (padding) {
+          return function (randomness) {
+              return function (domain) {
+                  return shuffle(randomness)(Data_Array.filter(fits(radius)(padding))(domain));
               };
           };
       };
@@ -3922,7 +4023,7 @@ var PS = {};
       return Oak_Html.circle([ Oak_Html_Attribute.cx(Oak_Html_Present.presentInt)(v.value0 - 30 | 0), Oak_Html_Attribute.cy(Oak_Html_Present.presentInt)(v.value1 - 20 | 0), Oak_Html_Attribute.r(Oak_Html_Present.presentString)("40"), Oak_Html_Attribute.fill(Oak_Html_Present.presentString)("red") ])([  ]);
   };
   var centers = function (randomness) {
-      return spots(600)(1200)(40)(5);
+      return select(40)(15)(randomness)(spots(600)(1200));
   };
   var calc = function (randomness) {
       return Data_Int.floor(randomness * 100.0);

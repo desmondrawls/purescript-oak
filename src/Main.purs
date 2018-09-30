@@ -1,8 +1,9 @@
 module Main (main) where
 
 import Prelude
-import Data.Array ( filter, (..) )
+import Data.Array ( take, (!!), concat, length, filter, (..) )
 import Data.Tuple
+import Data.Maybe
 import Data.List as List
 import Data.Int ( floor )
 import Math
@@ -47,8 +48,35 @@ fits radius padding (Tuple x y) =
     where
       space = 2 * (radius + padding)
 
-spots :: Int -> Int -> Int -> Int -> Array (Tuple Int Int)
-spots height width radius padding = filter (fits radius padding) $ do
+or :: forall m. m -> Maybe m -> m
+or b (Just a) = a
+or b (Nothing) = b
+
+oddPair :: forall a. Int -> Array a -> a -> Array a
+oddPair i arr backup =
+    [(index (n - i)), (index (i - 1))]
+    where
+      n = length arr
+      index at = or backup $ arr !! at
+
+
+shuffle :: Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
+shuffle 0 deck = deck
+shuffle rounds deck =
+    take 5 $ shuffle (rounds - 1) $ concat subdecks
+    where
+      subdecks = do
+        i <- 1 .. (length deck / 2)
+        pure $ oddPair i deck (Tuple 200 400)
+
+
+
+select :: Int -> Int -> Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
+select radius padding randomness domain =
+    shuffle randomness $ filter (fits radius padding) domain
+
+spots :: Int -> Int -> Array (Tuple Int Int)
+spots height width = do
   y <- 1 .. height
   x <- 1 .. width
   pure (Tuple x y)    
@@ -63,7 +91,7 @@ circleView (Tuple x y) =
 
 centers :: Int -> Array (Tuple Int Int)
 centers randomness =
-   spots 600 1200 40 5
+   select 40 15 randomness $ spots 600 1200 
 
 next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
 next GetRandom _ =
