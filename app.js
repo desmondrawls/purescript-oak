@@ -4038,7 +4038,8 @@ var PS = {};
       };
   };
   var view = function (model) {
-      return Oak_Html.div([  ])([ Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The laws of physics are only patterns, beginning with quantities.") ]), Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The quantity: " + Data_Show.show(Data_Show.showInt)(model.randomness % model.limit)) ]), Oak_Html.svg([ Oak_Html_Attribute.style([ Oak_Css.backgroundColor("blue") ]), Oak_Html_Attribute.height(Oak_Html_Present.presentInt)(600), Oak_Html_Attribute.width(Oak_Html_Present.presentInt)(1200), Oak_Html_Events.onClick(GetRandom.value) ])(manyCircles(model.height)(model.width)(model.radius)(model.padding)(model.limit)(model.randomness)) ]);
+      var circles = manyCircles(model.height)(model.width)(model.radius)(model.padding)(model.limit)(model.randomness);
+      return Oak_Html.div([  ])([ Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The laws of physics are only patterns, beginning with quantities.") ]), Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The quantity: " + Data_Show.show(Data_Show.showInt)(Data_Array.length(circles))) ]), Oak_Html.svg([ Oak_Html_Attribute.style([ Oak_Css.backgroundColor("blue") ]), Oak_Html_Attribute.height(Oak_Html_Present.presentInt)(600), Oak_Html_Attribute.width(Oak_Html_Present.presentInt)(1200), Oak_Html_Events.onClick(GetRandom.value) ])(circles) ]);
   };
   var calc = function (randomness) {
       return Data_Int.floor(randomness * 100.0);

@@ -39,10 +39,13 @@ view :: Model -> Html Msg
 view model =
     div [] 
         [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
-        , div [] [ text ("The quantity: " <> (show $ model.randomness `mod` model.limit)) ]
+        , div [] [ text ("The quantity: " <> (show $ length circles)) ]
         , svg [ style [backgroundColor "blue"], height 600, width 1200, onClick GetRandom ] 
-              (manyCircles model.height model.width model.radius model.padding model.limit model.randomness)
+          circles
         ]
+        where
+          circles = 
+              (manyCircles model.height model.width model.radius model.padding model.limit model.randomness)
 
 calc :: Number -> Int
 calc randomness =
