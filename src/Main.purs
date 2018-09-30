@@ -23,7 +23,12 @@ import Oak.Css ( backgroundColor )
 import Oak.Cmd.Http (get)
 
 type Model =
-  { randomness :: Number
+  { randomness :: Int,
+    height :: Int,
+    width :: Int,
+    radius :: Int,
+    padding :: Int,
+    limit :: Int
   }
 
 data Msg
@@ -34,9 +39,9 @@ view :: Model -> Html Msg
 view model =
     div [] 
         [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
-        , div [] [ text ("The quantity: " <> (show $ calc model.randomness)) ]
+        , div [] [ text ("The quantity: " <> (show $ model.randomness `mod` model.limit)) ]
         , svg [ style [backgroundColor "blue"], height 600, width 1200, onClick GetRandom ] 
-              (manyCircles model.randomness)
+              (manyCircles model.height model.width model.radius model.padding model.limit model.randomness)
         ]
 
 calc :: Number -> Int
@@ -66,13 +71,11 @@ shuffle rounds deck =
         i <- 1 .. (length deck / 2)
         pure $ oddPair i deck (Tuple 100 100)
 
-
-
-select :: Int -> Int -> Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
-select radius padding randomness domain =
+select :: Int -> Int -> Int -> Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
+select radius padding limit randomness domain =
     take quantity $ shuffle randomness $ filter (fits radius padding) domain
     where
-      quantity = randomness `mod` 20
+      quantity = randomness `mod` limit
 
 spots :: Int -> Int -> Array (Tuple Int Int)
 spots height width = do
@@ -80,17 +83,17 @@ spots height width = do
   x <- 1 .. width
   pure (Tuple x y)    
 
-manyCircles :: Number -> Array (Html Msg)
-manyCircles randomness =
-    map circleView $ centers $ calc randomness
+manyCircles :: Int -> Int -> Int -> Int -> Int -> Int -> Array (Html Msg)
+manyCircles height width radius padding limit randomness =
+    map circleView $ centers height width radius padding limit randomness
 
 circleView :: (Tuple Int Int) -> Html Msg
 circleView (Tuple x y) =
     circle [ cx (x - 30), cy (y - 20), r "40", fill "red" ] []
 
-centers :: Int -> Array (Tuple Int Int)
-centers randomness =
-   select 40 15 randomness $ spots 600 1200 
+centers :: Int -> Int -> Int -> Int -> Int -> Int -> Array (Tuple Int Int)
+centers height width radius padding limit randomness =
+   select radius padding limit randomness $ spots height width 
 
 next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
 next GetRandom _ =
@@ -99,13 +102,18 @@ next _ _ = none
 
 update :: Msg -> Model -> Model
 update (GotRandom n) model =
-  model { randomness = n }
+  model { randomness = calc n }
 update msg model =
-  model { randomness = 1.3 }
+  model
 
 init :: Unit -> Model
 init _ =
-  { randomness: 0.5
+  { randomness: 50,
+    height: 600,
+    width: 1200,
+    radius: 40,
+    padding: 15,
+    limit: 20
   }
 
 app :: App (random :: RANDOM) Model Msg Unit
