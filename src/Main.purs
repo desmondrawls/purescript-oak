@@ -63,7 +63,7 @@ oddPair i arr backup =
 shuffle :: Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
 shuffle 0 deck = deck
 shuffle rounds deck =
-    take 5 $ shuffle (rounds - 1) $ concat subdecks
+    shuffle (rounds - 1) $ concat subdecks
     where
       subdecks = do
         i <- 1 .. (length deck / 2)
@@ -73,7 +73,9 @@ shuffle rounds deck =
 
 select :: Int -> Int -> Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
 select radius padding randomness domain =
-    shuffle randomness $ filter (fits radius padding) domain
+    take quantity $ shuffle randomness $ filter (fits radius padding) domain
+    where
+      quantity = randomness `mod` 20
 
 spots :: Int -> Int -> Array (Tuple Int Int)
 spots height width = do

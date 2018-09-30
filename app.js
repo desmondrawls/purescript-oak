@@ -3978,15 +3978,27 @@ var PS = {};
           };
       };
   };
-  var shuffle = function (v) {
-      return function (deck) {
-          if (v === 0) {
-              return deck;
+  var shuffle = function ($copy_v) {
+      return function ($copy_deck) {
+          var $tco_var_v = $copy_v;
+          var $tco_done = false;
+          var $tco_result;
+          function $tco_loop(v, deck) {
+              if (v === 0) {
+                  $tco_done = true;
+                  return deck;
+              };
+              var subdecks = Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(Data_Array.length(deck) / 2 | 0))(function (v1) {
+                  return Control_Applicative.pure(Control_Applicative.applicativeArray)(oddPair(v1)(deck)(new Data_Tuple.Tuple(200, 400)));
+              });
+              $tco_var_v = v - 1 | 0;
+              $copy_deck = Data_Array.concat(subdecks);
+              return;
           };
-          var subdecks = Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(Data_Array.length(deck) / 2 | 0))(function (v1) {
-              return Control_Applicative.pure(Control_Applicative.applicativeArray)(oddPair(v1)(deck)(new Data_Tuple.Tuple(200, 400)));
-          });
-          return Data_Array.take(5)(shuffle(v - 1 | 0)(Data_Array.concat(subdecks)));
+          while (!$tco_done) {
+              $tco_result = $tco_loop($tco_var_v, $copy_deck);
+          };
+          return $tco_result;
       };
   };
   var next = function (v) {
@@ -4014,7 +4026,8 @@ var PS = {};
       return function (padding) {
           return function (randomness) {
               return function (domain) {
-                  return shuffle(randomness)(Data_Array.filter(fits(radius)(padding))(domain));
+                  var quantity = randomness % 20;
+                  return Data_Array.take(quantity)(shuffle(randomness)(Data_Array.filter(fits(radius)(padding))(domain)));
               };
           };
       };
