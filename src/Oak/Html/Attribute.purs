@@ -448,3 +448,10 @@ width val = SimpleAttribute "width" (present val)
 wrap :: ∀ msg v. Present v => v -> Attribute msg
 wrap val = SimpleAttribute "wrap" (present val)
 
+
+x :: ∀ msg v. Present v => v -> Attribute msg
+x val = SimpleAttribute "x" (present val)
+
+
+y :: ∀ msg v. Present v => v -> Attribute msg
+y val = SimpleAttribute "y" (present val)

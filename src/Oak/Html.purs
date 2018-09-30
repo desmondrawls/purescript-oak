@@ -309,6 +309,10 @@ q :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
 q attrs children = Tag "q" attrs children
 
 
+rect :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
+rect attrs children = Svg "rect" attrs children
+    
+
 rp :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
 rp attrs children = Tag "rp" attrs children
 
