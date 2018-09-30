@@ -1,9 +1,11 @@
 module Main (main) where
 
 import Prelude
-import Data.Array
+import Data.Array ( filter, (..) )
 import Data.Tuple
-import Data.List
+import Data.List as List
+import Data.Int ( floor )
+import Math
 
 import Control.Monad.Eff
 import Control.Monad.Eff.Exception
@@ -12,9 +14,10 @@ import Oak.Cmd.Random (RANDOM, generate)
 import Oak
 import Oak.Html ( Html, div, svg, circle, text )
 import Oak.Html.Events
-import Oak.Html.Attribute ( cx, cy, r, fill, height, width, id_ )
+import Oak.Html.Attribute ( style, cx, cy, r, fill, height, width, id_ )
 import Oak.Document
 import Oak.Cmd
+import Oak.Css ( backgroundColor )
 import Oak.Cmd.Http (get)
 
 type Model =
@@ -29,22 +32,38 @@ view :: Model -> Html Msg
 view model =
     div [] 
         [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
-        , div [] [ text ("The quantity: " <> show model.randomness) ]
-        , svg [ height 600, width 1200, onClick GetRandom ] 
-              manyCircles
+        , div [] [ text ("The quantity: " <> (show $ calc model.randomness)) ]
+        , svg [ style [backgroundColor "blue"], height 600, width 1200, onClick GetRandom ] 
+              (manyCircles model.randomness)
         ]
 
-manyCircles :: Array (Html Msg)
-manyCircles =
-    map circleView centers
+calc :: Number -> Int
+calc randomness =
+ floor $ randomness * 100.0
+
+fits :: Int -> Int -> (Tuple Int Int) -> Boolean
+fits radius padding (Tuple x y) =
+  y `mod` space == 0 && x `mod` space == 0
+    where
+      space = 2 * (radius + padding)
+
+spots :: Int -> Int -> Int -> Int -> Array (Tuple Int Int)
+spots height width radius padding = filter (fits radius padding) $ do
+  y <- 1 .. height
+  x <- 1 .. width
+  pure (Tuple x y)    
+
+manyCircles :: Number -> Array (Html Msg)
+manyCircles randomness =
+    map circleView $ centers $ calc randomness
 
 circleView :: (Tuple Int Int) -> Html Msg
 circleView (Tuple x y) =
     circle [ cx x, cy y, r "40", fill "red" ] []
 
-centers :: Array (Tuple Int Int)
-centers =
-   [Tuple 200 100, Tuple 400 30, Tuple 150 500]
+centers :: Int -> Array (Tuple Int Int)
+centers randomness =
+   spots 600 1200 40 5
 
 next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
 next GetRandom _ =
