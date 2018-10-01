@@ -21,12 +21,13 @@ import Oak.Document
 import Oak.Cmd
 import Oak.Css ( backgroundColor )
 import Oak.Cmd.Http (get)
+import Quantities (quantities)
 
 type Model =
   { randomness :: Int,
     height :: Int,
     width :: Int,
-    radius :: Int,
+    size :: Int,
     padding :: Int,
     limit :: Int
   }
@@ -45,40 +46,12 @@ view model =
         ]
         where
           shapes = 
-              (manyShapes model.height model.width model.radius model.padding model.limit model.randomness)
+              (manyShapes model)
 
 calc :: Number -> Int
 calc randomness =
  floor $ randomness * 100.0
 
-fits :: Int -> Int -> (Tuple Int Int) -> Boolean
-fits radius padding (Tuple x y) =
-  y `mod` space == 0 && x `mod` space == 0
-    where
-      space = 2 * (radius + padding)
-
-oddPair :: forall a. Int -> Array a -> a -> Array a
-oddPair i arr backup =
-    [(index (n - i)), (index (i - 1))]
-    where
-      n = length arr
-      index at = maybe backup id (arr !! at) 
-
-
-shuffle :: Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
-shuffle 0 deck = deck
-shuffle rounds deck =
-    shuffle (rounds - 1) $ concat subdecks
-    where
-      subdecks = do
-        i <- 1 .. (length deck / 2)
-        pure $ oddPair i deck (Tuple 100 100)
-
-select :: Int -> Int -> Int -> Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
-select radius padding limit randomness domain =
-    take quantity $ shuffle randomness $ filter (fits radius padding) domain
-    where
-      quantity = randomness `mod` limit
 
 spots :: Int -> Int -> Array (Tuple Int Int)
 spots height width = do
@@ -86,25 +59,36 @@ spots height width = do
   x <- 1 .. width
   pure (Tuple x y)    
 
-manyShapes :: Int -> Int -> Int -> Int -> Int -> Int -> Array (Html Msg)
-manyShapes height width radius padding limit randomness =
-    map (shapeView randomness) $ centers height width radius padding limit randomness
+manyShapes :: Model -> Array (Html Msg)
+manyShapes model =
+    map (shapeView model.randomness model.size) $ centers model
 
-circleView :: Int -> (Tuple Int Int) -> Html Msg
-circleView randomness (Tuple center_x center_y) =
-    circle [ key_ ("circle-" <> show randomness), cx (center_x - 30), cy (center_y - 20), r "40", fill "red" ] []
+positionAdjustment :: Int
+positionAdjustment = 40
 
-squareView :: Int -> (Tuple Int Int) -> Html Msg
-squareView randomness (Tuple center_x center_y) =
-    rect [ key_ ("square-" <> show randomness), x (center_x - 30), y (center_y - 40), width "60", height "60", fill "red" ] []
+color :: String
+color = "red"
 
-shapeView :: Int -> (Tuple Int Int) -> Html Msg
-shapeView randomness | randomness `mod` 2 == 0 = circleView randomness
-                     | otherwise               = squareView randomness
+circleView :: Int -> Int -> (Tuple Int Int) -> Html Msg
+circleView randomness size (Tuple center_x center_y) =
+    circle [ key_ key, cx (center_x - positionAdjustment), cy (center_y - positionAdjustment), r (show size), fill color ] []
+    where
+      key = "circle-" <> show randomness
 
-centers :: Int -> Int -> Int -> Int -> Int -> Int -> Array (Tuple Int Int)
-centers height width radius padding limit randomness =
-   select radius padding limit randomness $ spots height width 
+squareView :: Int -> Int -> (Tuple Int Int) -> Html Msg
+squareView randomness size (Tuple center_x center_y) =
+    rect [ key_ key, x (center_x - positionAdjustment), y (center_y - positionAdjustment), width dimension, height dimension, fill color ] []
+    where
+      dimension = show $ size + 20
+      key = "square-" <> show randomness
+
+shapeView :: Int -> Int -> (Tuple Int Int) -> Html Msg
+shapeView randomness size | randomness `mod` 2 == 0 = circleView randomness size
+                          | otherwise               = squareView randomness size
+
+centers :: Model -> Array (Tuple Int Int)
+centers model =
+   quantities model.size model.padding model.limit model.randomness $ spots model.height model.width 
 
 next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
 next GetRandom _ =
@@ -122,9 +106,9 @@ init _ =
   { randomness: 50,
     height: 700,
     width: 1400,
-    radius: 40,
+    size: 40,
     padding: 15,
-    limit: 20
+    limit: 10
   }
 
 app :: App (random :: RANDOM) Model Msg Unit
