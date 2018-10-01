@@ -36,6 +36,27 @@ data Msg
   = GetRandom
   | GotRandom Number
 
+next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
+next GetRandom _ =
+  generate GotRandom
+next _ _ = none
+
+update :: Msg -> Model -> Model
+update (GotRandom n) model =
+  model { randomness = factor n }
+update msg model =
+  model
+
+init :: Unit -> Model
+init _ =
+  { randomness: 50,
+    height: 700,
+    width: 1400,
+    size: 40,
+    padding: 15,
+    limit: 10
+  }
+  
 view :: Model -> Html Msg
 view model =
     div [] 
@@ -48,10 +69,17 @@ view model =
           shapes = 
               (manyShapes model)
 
-calc :: Number -> Int
-calc randomness =
+factor :: Number -> Int
+factor randomness =
  floor $ randomness * 100.0
 
+manyShapes :: Model -> Array (Html Msg)
+manyShapes model =
+    map (shapeView model.randomness model.size) $ centers model
+
+centers :: Model -> Array (Tuple Int Int)
+centers model =
+   quantities model.size model.padding model.limit model.randomness $ spots model.height model.width 
 
 spots :: Int -> Int -> Array (Tuple Int Int)
 spots height width = do
@@ -59,9 +87,9 @@ spots height width = do
   x <- 1 .. width
   pure (Tuple x y)    
 
-manyShapes :: Model -> Array (Html Msg)
-manyShapes model =
-    map (shapeView model.randomness model.size) $ centers model
+shapeView :: Int -> Int -> (Tuple Int Int) -> Html Msg
+shapeView randomness size | randomness `mod` 2 == 0 = circleView randomness size
+                          | otherwise               = squareView randomness size
 
 positionAdjustment :: Int
 positionAdjustment = 40
@@ -81,35 +109,6 @@ squareView randomness size (Tuple center_x center_y) =
     where
       dimension = show $ size + 20
       key = "square-" <> show randomness
-
-shapeView :: Int -> Int -> (Tuple Int Int) -> Html Msg
-shapeView randomness size | randomness `mod` 2 == 0 = circleView randomness size
-                          | otherwise               = squareView randomness size
-
-centers :: Model -> Array (Tuple Int Int)
-centers model =
-   quantities model.size model.padding model.limit model.randomness $ spots model.height model.width 
-
-next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
-next GetRandom _ =
-  generate GotRandom
-next _ _ = none
-
-update :: Msg -> Model -> Model
-update (GotRandom n) model =
-  model { randomness = calc n }
-update msg model =
-  model
-
-init :: Unit -> Model
-init _ =
-  { randomness: 50,
-    height: 700,
-    width: 1400,
-    size: 40,
-    padding: 15,
-    limit: 10
-  }
 
 app :: App (random :: RANDOM) Model Msg Unit
 app = createApp

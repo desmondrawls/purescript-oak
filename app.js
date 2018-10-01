@@ -4057,6 +4057,24 @@ var PS = {};
           limit: 10
       };
   };
+  var factor = function (randomness) {
+      return Data_Int.floor(randomness * 100.0);
+  };
+  var update = function (v) {
+      return function (model) {
+          if (v instanceof GotRandom) {
+              var $17 = {};
+              for (var $18 in model) {
+                  if ({}.hasOwnProperty.call(model, $18)) {
+                      $17[$18] = model[$18];
+                  };
+              };
+              $17.randomness = factor(v.value0);
+              return $17;
+          };
+          return model;
+      };
+  };
   var color = "red";
   var squareView = function (randomness) {
       return function (size) {
@@ -4083,7 +4101,7 @@ var PS = {};
           if (Data_Boolean.otherwise) {
               return squareView(randomness)(size);
           };
-          throw new Error("Failed pattern match at Main line 85, column 1 - line 85, column 55: " + [ randomness.constructor.name, size.constructor.name ]);
+          throw new Error("Failed pattern match at Main line 90, column 1 - line 90, column 55: " + [ randomness.constructor.name, size.constructor.name ]);
       };
   };
   var centers = function (model) {
@@ -4095,24 +4113,6 @@ var PS = {};
   var view = function (model) {
       var shapes = manyShapes(model);
       return Oak_Html.div([  ])([ Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The laws of physics are only patterns, beginning with quantities.") ]), Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The quantity: " + Data_Show.show(Data_Show.showInt)(Data_Array.length(shapes))) ]), Oak_Html.svg([ Oak_Html_Attribute.id_(Oak_Html_Present.presentString)("svg-" + Data_Show.show(Data_Show.showInt)(model.randomness)), Oak_Html_Attribute.key_(Oak_Html_Present.presentString)("svg-" + Data_Show.show(Data_Show.showInt)(model.randomness)), Oak_Html_Attribute.style([ Oak_Css.backgroundColor("blue") ]), Oak_Html_Attribute.height(Oak_Html_Present.presentInt)(model.height), Oak_Html_Attribute.width(Oak_Html_Present.presentInt)(model.width), Oak_Html_Events.onClick(GetRandom.value) ])(shapes) ]);
-  };
-  var calc = function (randomness) {
-      return Data_Int.floor(randomness * 100.0);
-  };
-  var update = function (v) {
-      return function (model) {
-          if (v instanceof GotRandom) {
-              var $29 = {};
-              for (var $30 in model) {
-                  if ({}.hasOwnProperty.call(model, $30)) {
-                      $29[$30] = model[$30];
-                  };
-              };
-              $29.randomness = calc(v.value0);
-              return $29;
-          };
-          return model;
-      };
   };
   var app = Oak.createApp({
       init: init,
