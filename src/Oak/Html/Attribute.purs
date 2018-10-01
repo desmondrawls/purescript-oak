@@ -245,6 +245,10 @@ ismap :: ∀ msg v. Present v => v -> Attribute msg
 ismap val = SimpleAttribute "ismap" (present val)
 
 
+key_ :: ∀ msg v. Present v => v -> Attribute msg
+key_ val = SimpleAttribute "key" (present val)
+
+
 kind_ :: ∀ msg v. Present v => v -> Attribute msg
 kind_ val = SimpleAttribute "kind" (present val)
 

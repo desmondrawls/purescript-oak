@@ -3407,6 +3407,16 @@ var PS = {};
           return new SimpleAttribute("r", Oak_Html_Present.present(dictPresent)(val));
       };
   };
+  var key_ = function (dictPresent) {
+      return function (val) {
+          return new SimpleAttribute("key", Oak_Html_Present.present(dictPresent)(val));
+      };
+  };
+  var id_ = function (dictPresent) {
+      return function (val) {
+          return new SimpleAttribute("id", Oak_Html_Present.present(dictPresent)(val));
+      };
+  };
   var height = function (dictPresent) {
       return function (val) {
           return new SimpleAttribute("height", Oak_Html_Present.present(dictPresent)(val));
@@ -3439,6 +3449,8 @@ var PS = {};
   exports["cy"] = cy;
   exports["fill"] = fill;
   exports["height"] = height;
+  exports["id_"] = id_;
+  exports["key_"] = key_;
   exports["r"] = r;
   exports["width"] = width;
   exports["x"] = x;
@@ -3946,8 +3958,10 @@ var PS = {};
       };
       return GotRandom;
   })();
-  var squareView = function (v) {
-      return Oak_Html.rect([ Oak_Html_Attribute.x(Oak_Html_Present.presentInt)(v.value0 - 30 | 0), Oak_Html_Attribute.y(Oak_Html_Present.presentInt)(v.value1 - 20 | 0), Oak_Html_Attribute.width(Oak_Html_Present.presentString)("80"), Oak_Html_Attribute.height(Oak_Html_Present.presentString)("80"), Oak_Html_Attribute.fill(Oak_Html_Present.presentString)("red") ])([  ]);
+  var squareView = function (randomness) {
+      return function (v) {
+          return Oak_Html.rect([ Oak_Html_Attribute.key_(Oak_Html_Present.presentString)("square-" + Data_Show.show(Data_Show.showInt)(randomness)), Oak_Html_Attribute.x(Oak_Html_Present.presentInt)(v.value0 - 30 | 0), Oak_Html_Attribute.y(Oak_Html_Present.presentInt)(v.value1 - 40 | 0), Oak_Html_Attribute.width(Oak_Html_Present.presentString)("60"), Oak_Html_Attribute.height(Oak_Html_Present.presentString)("60"), Oak_Html_Attribute.fill(Oak_Html_Present.presentString)("red") ])([  ]);
+      };
   };
   var spots = function (height) {
       return function (width) {
@@ -4003,8 +4017,8 @@ var PS = {};
   var init = function (v) {
       return {
           randomness: 50,
-          height: 600,
-          width: 1200,
+          height: 700,
+          width: 1400,
           radius: 40,
           padding: 15,
           limit: 20
@@ -4030,15 +4044,17 @@ var PS = {};
           };
       };
   };
-  var circleView = function (v) {
-      return Oak_Html.circle([ Oak_Html_Attribute.cx(Oak_Html_Present.presentInt)(v.value0 - 30 | 0), Oak_Html_Attribute.cy(Oak_Html_Present.presentInt)(v.value1 - 20 | 0), Oak_Html_Attribute.r(Oak_Html_Present.presentString)("40"), Oak_Html_Attribute.fill(Oak_Html_Present.presentString)("red") ])([  ]);
+  var circleView = function (randomness) {
+      return function (v) {
+          return Oak_Html.circle([ Oak_Html_Attribute.key_(Oak_Html_Present.presentString)("circle-" + Data_Show.show(Data_Show.showInt)(randomness)), Oak_Html_Attribute.cx(Oak_Html_Present.presentInt)(v.value0 - 30 | 0), Oak_Html_Attribute.cy(Oak_Html_Present.presentInt)(v.value1 - 20 | 0), Oak_Html_Attribute.r(Oak_Html_Present.presentString)("40"), Oak_Html_Attribute.fill(Oak_Html_Present.presentString)("red") ])([  ]);
+      };
   };
   var shapeView = function (randomness) {
       if (randomness % 2 === 0) {
-          return circleView;
+          return circleView(randomness);
       };
       if (Data_Boolean.otherwise) {
-          return squareView;
+          return squareView(randomness);
       };
       throw new Error("Failed pattern match at Main line 101, column 1 - line 101, column 48: " + [ randomness.constructor.name ]);
   };
@@ -4070,7 +4086,7 @@ var PS = {};
   };
   var view = function (model) {
       var shapes = manyShapes(model.height)(model.width)(model.radius)(model.padding)(model.limit)(model.randomness);
-      return Oak_Html.div([  ])([ Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The laws of physics are only patterns, beginning with quantities.") ]), Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The quantity: " + Data_Show.show(Data_Show.showInt)(Data_Array.length(shapes))) ]), Oak_Html.svg([ Oak_Html_Attribute.style([ Oak_Css.backgroundColor("blue") ]), Oak_Html_Attribute.height(Oak_Html_Present.presentInt)(600), Oak_Html_Attribute.width(Oak_Html_Present.presentInt)(1200), Oak_Html_Events.onClick(GetRandom.value) ])(shapes) ]);
+      return Oak_Html.div([  ])([ Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The laws of physics are only patterns, beginning with quantities.") ]), Oak_Html.div([  ])([ Oak_Html.text(Oak_Html_Present.presentString)("The quantity: " + Data_Show.show(Data_Show.showInt)(Data_Array.length(shapes))) ]), Oak_Html.svg([ Oak_Html_Attribute.id_(Oak_Html_Present.presentString)("svg-" + Data_Show.show(Data_Show.showInt)(model.randomness)), Oak_Html_Attribute.key_(Oak_Html_Present.presentString)("svg-" + Data_Show.show(Data_Show.showInt)(model.randomness)), Oak_Html_Attribute.style([ Oak_Css.backgroundColor("blue") ]), Oak_Html_Attribute.height(Oak_Html_Present.presentInt)(model.height), Oak_Html_Attribute.width(Oak_Html_Present.presentInt)(model.width), Oak_Html_Events.onClick(GetRandom.value) ])(shapes) ]);
   };
   var calc = function (randomness) {
       return Data_Int.floor(randomness * 100.0);
@@ -4078,14 +4094,14 @@ var PS = {};
   var update = function (v) {
       return function (model) {
           if (v instanceof GotRandom) {
-              var $35 = {};
-              for (var $36 in model) {
-                  if ({}.hasOwnProperty.call(model, $36)) {
-                      $35[$36] = model[$36];
+              var $37 = {};
+              for (var $38 in model) {
+                  if ({}.hasOwnProperty.call(model, $38)) {
+                      $37[$38] = model[$38];
                   };
               };
-              $35.randomness = calc(v.value0);
-              return $35;
+              $37.randomness = calc(v.value0);
+              return $37;
           };
           return model;
       };

@@ -16,7 +16,7 @@ import Oak.Cmd.Random (RANDOM, generate)
 import Oak
 import Oak.Html ( Html, div, svg, circle, rect, text )
 import Oak.Html.Events
-import Oak.Html.Attribute ( style, cx, cy, r, fill, x, y, height, width, id_ )
+import Oak.Html.Attribute ( id_, key_, style, cx, cy, r, fill, x, y, height, width, id_ )
 import Oak.Document
 import Oak.Cmd
 import Oak.Css ( backgroundColor )
@@ -40,7 +40,7 @@ view model =
     div [] 
         [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
         , div [] [ text ("The quantity: " <> (show $ length shapes)) ]
-        , svg [ style [backgroundColor "blue"], height 600, width 1200, onClick GetRandom ] 
+        , svg [ id_ ("svg-" <> show model.randomness), key_ ("svg-" <> show model.randomness), style [backgroundColor "blue"], height model.height, width model.width, onClick GetRandom ] 
           shapes
         ]
         where
@@ -90,17 +90,17 @@ manyShapes :: Int -> Int -> Int -> Int -> Int -> Int -> Array (Html Msg)
 manyShapes height width radius padding limit randomness =
     map (shapeView randomness) $ centers height width radius padding limit randomness
 
-circleView :: (Tuple Int Int) -> Html Msg
-circleView (Tuple center_x center_y) =
-    circle [ cx (center_x - 30), cy (center_y - 20), r "40", fill "red" ] []
+circleView :: Int -> (Tuple Int Int) -> Html Msg
+circleView randomness (Tuple center_x center_y) =
+    circle [ key_ ("circle-" <> show randomness), cx (center_x - 30), cy (center_y - 20), r "40", fill "red" ] []
 
-squareView :: (Tuple Int Int) -> Html Msg
-squareView (Tuple center_x center_y) =
-    rect [ x (center_x - 30), y (center_y - 20), width "80", height "80", fill "red" ] []
+squareView :: Int -> (Tuple Int Int) -> Html Msg
+squareView randomness (Tuple center_x center_y) =
+    rect [ key_ ("square-" <> show randomness), x (center_x - 30), y (center_y - 40), width "60", height "60", fill "red" ] []
 
 shapeView :: Int -> (Tuple Int Int) -> Html Msg
-shapeView randomness | randomness `mod` 2 == 0 = circleView
-                     | otherwise               = squareView
+shapeView randomness | randomness `mod` 2 == 0 = circleView randomness
+                     | otherwise               = squareView randomness
 
 centers :: Int -> Int -> Int -> Int -> Int -> Int -> Array (Tuple Int Int)
 centers height width radius padding limit randomness =
@@ -120,8 +120,8 @@ update msg model =
 init :: Unit -> Model
 init _ =
   { randomness: 50,
-    height: 600,
-    width: 1200,
+    height: 700,
+    width: 1400,
     radius: 40,
     padding: 15,
     limit: 20
