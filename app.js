@@ -3955,24 +3955,18 @@ var PS = {};
           return $tco_result;
       };
   };
-  var fits = function (radius) {
+  var fits = function (size) {
       return function (padding) {
           return function (v) {
-              var space = 2 * (radius + padding | 0) | 0;
+              var space = 2 * (size + padding | 0) | 0;
               return v.value1 % space === 0 && v.value0 % space === 0;
           };
       };
   };
-  var quantities = function (radius) {
-      return function (padding) {
-          return function (limit) {
-              return function (randomness) {
-                  return function (domain) {
-                      var quantity = randomness % limit;
-                      return Data_Array.take(quantity)(shuffle(randomness)(Data_Array.filter(fits(radius)(padding))(domain)));
-                  };
-              };
-          };
+  var quantities = function (v) {
+      return function (domain) {
+          var quantity = v.randomness % v.limit;
+          return Data_Array.take(quantity)(shuffle(v.randomness)(Data_Array.filter(fits(v.size)(v.padding))(domain)));
       };
   };
   exports["quantities"] = quantities;
@@ -4105,7 +4099,7 @@ var PS = {};
       };
   };
   var centers = function (model) {
-      return Quantities.quantities(model.size)(model.padding)(model.limit)(model.randomness)(spots(model.height)(model.width));
+      return Quantities.quantities(model)(spots(model.height)(model.width));
   };
   var manyShapes = function (model) {
       return Data_Functor.map(Data_Functor.functorArray)(shapeView(model.randomness)(model.size))(centers(model));

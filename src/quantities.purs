@@ -5,17 +5,20 @@ import Data.Tuple
 import Data.Maybe
 import Data.Array
 
-quantities :: Int -> Int -> Int -> Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
-quantities radius padding limit randomness domain =
-    take quantity $ shuffle randomness $ filter (fits radius padding) domain
+quantities :: 
+  forall e. { size :: Int, padding :: Int, limit :: Int, randomness :: Int | e } 
+    -> Array (Tuple Int Int) 
+    -> Array (Tuple Int Int)
+quantities { size, padding, limit, randomness } domain =
+    take quantity $ shuffle randomness $ filter (fits size padding) domain
     where
       quantity = randomness `mod` limit
 
 fits :: Int -> Int -> (Tuple Int Int) -> Boolean
-fits radius padding (Tuple x y) =
+fits size padding (Tuple x y) =
   y `mod` space == 0 && x `mod` space == 0
     where
-      space = 2 * (radius + padding)
+      space = 2 * (size + padding)
 
 shuffle :: Int -> Array (Tuple Int Int) -> Array (Tuple Int Int)
 shuffle 0 deck = deck

@@ -79,7 +79,7 @@ manyShapes model =
 
 centers :: Model -> Array (Tuple Int Int)
 centers model =
-   quantities model.size model.padding model.limit model.randomness $ spots model.height model.width 
+   quantities model $ spots model.height model.width 
 
 spots :: Int -> Int -> Array (Tuple Int Int)
 spots height width = do
