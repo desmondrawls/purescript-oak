@@ -5,6 +5,7 @@ import Control.Alt
 import Data.Array ( take, (!!), concat, length, filter, (..) )
 import Data.Tuple
 import Data.Maybe
+import Data.Either
 import Data.List as List
 import Data.Int ( floor )
 import Math
@@ -12,6 +13,12 @@ import Math
 import Control.Monad.Eff
 import Control.Monad.Eff.Exception
 import Oak.Cmd.Random (RANDOM, generate)
+import Oak.Cmd.Http (HTTP, get, post)
+import Oak.Cmd.Http.Conversion (defaultDecode, defaultEncode)
+
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
+import Data.Foreign.Class (class Decode, class Encode)
 
 import Oak
 import Oak.Html ( Html, div, svg, circle, rect, text )
@@ -29,21 +36,69 @@ type Model =
     width :: Int,
     size :: Int,
     padding :: Int,
-    limit :: Int
+    limit :: Int,
+    centers :: Centers,
+    error :: String
   }
+
+data TransportModel = TransportModel { size :: Int, padding :: Int, limit :: Int, randomness :: Int, centers :: Centers }
+
+instance showTransportModel :: Show TransportModel where 
+  show = genericShow
+
+derive instance genericTransportModel :: Generic TransportModel _
+
+instance encodeTransportModel :: Encode TransportModel where
+  encode = defaultEncode
+
+data Center = Center { center_x :: Int, center_y :: Int }
+
+instance showCenter :: Show Center where 
+  show = genericShow
+
+derive instance genericCenter :: Generic Center _
+
+instance decodeCenter :: Decode Center where
+  decode = defaultDecode
+
+instance encodeCenter :: Encode Center where
+  encode = defaultEncode
+
+data Centers = Centers (Array Center)
+
+instance showCenters :: Show Centers where 
+  show = genericShow
+
+derive instance genericCenters :: Generic Centers _
+
+instance decodeCenters :: Decode Centers where
+  decode = defaultDecode
+
+instance encodeCenters :: Encode Centers where
+  encode = defaultEncode
 
 data Msg
   = GetRandom
-  | GotRandom Number
+  | GetCenters Number
+  | GotCenters Int (Either String Centers)
 
-next :: forall c. Msg -> Model -> Cmd (random :: RANDOM | c) Msg
+next :: forall c. Msg -> Model -> Cmd (http :: HTTP, random :: RANDOM | c) Msg
 next GetRandom _ =
-  generate GotRandom
+  generate GetCenters
+next (GetCenters randomness) model
+    = post url body $ GotCenters rando
+  where
+    url = "http://localhost:8080"
+    body = (TransportModel { size: model.size, padding: model.padding, limit: model.limit, randomness: model.randomness, centers: model.centers })
+    rando = factor randomness
+    domain = spots model.height model.width
 next _ _ = none
 
 update :: Msg -> Model -> Model
-update (GotRandom n) model =
-  model { randomness = factor n }
+update (GotCenters randomness (Right centers)) model =
+  model { randomness = randomness, centers = centers }
+update (GotCenters randomness (Left error)) model =
+  model { randomness = randomness, error = error }
 update msg model =
   model
 
@@ -54,7 +109,9 @@ init _ =
     width: 1400,
     size: 40,
     padding: 15,
-    limit: 10
+    limit: 10,
+    centers: (Centers []),
+    error: ""
   }
   
 view :: Model -> Html Msg
@@ -74,20 +131,16 @@ factor randomness =
  floor $ randomness * 100.0
 
 manyShapes :: Model -> Array (Html Msg)
-manyShapes model =
-    map (shapeView model.randomness model.size) $ centers model
+manyShapes { randomness, size, centers: (Centers cents) } =
+    map (shapeView randomness size) cents
 
-centers :: Model -> Array (Tuple Int Int)
-centers model =
-   quantities model $ spots model.height model.width 
-
-spots :: Int -> Int -> Array (Tuple Int Int)
+spots :: Int -> Int -> Array Center
 spots height width = do
-  y <- 1 .. height
-  x <- 1 .. width
-  pure (Tuple x y)    
+  center_y <- 1 .. height
+  center_x <- 1 .. width
+  pure $ Center { center_x, center_y } 
 
-shapeView :: Int -> Int -> (Tuple Int Int) -> Html Msg
+shapeView :: Int -> Int -> Center -> Html Msg
 shapeView randomness size | randomness `mod` 2 == 0 = circleView randomness size
                           | otherwise               = squareView randomness size
 
@@ -97,20 +150,20 @@ positionAdjustment = 40
 color :: String
 color = "red"
 
-circleView :: Int -> Int -> (Tuple Int Int) -> Html Msg
-circleView randomness size (Tuple center_x center_y) =
+circleView :: Int -> Int -> Center -> Html Msg
+circleView randomness size (Center { center_x, center_y }) =
     circle [ key_ key, cx (center_x - positionAdjustment), cy (center_y - positionAdjustment), r (show size), fill color ] []
     where
       key = "circle-" <> show randomness
 
-squareView :: Int -> Int -> (Tuple Int Int) -> Html Msg
-squareView randomness size (Tuple center_x center_y) =
+squareView :: Int -> Int -> Center -> Html Msg
+squareView randomness size (Center { center_x, center_y }) =
     rect [ key_ key, x (center_x - positionAdjustment), y (center_y - positionAdjustment), width dimension, height dimension, fill color ] []
     where
       dimension = show $ size + 20
       key = "square-" <> show randomness
 
-app :: App (random :: RANDOM) Model Msg Unit
+app :: App (http :: HTTP, random :: RANDOM) Model Msg Unit
 app = createApp
   { init: init
   , view: view
