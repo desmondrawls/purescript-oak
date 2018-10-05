@@ -89,9 +89,9 @@ next (GetCenters randomness) model
     = post url body $ GotCenters rando
   where
     url = "http://localhost:8080"
-    body = (TransportModel { size: model.size, padding: model.padding, limit: model.limit, randomness: model.randomness, centers: model.centers })
+    body = (TransportModel { size: model.size, padding: model.padding, limit: model.limit, randomness: model.randomness, centers: domain })
     rando = factor randomness
-    domain = spots model.height model.width
+    domain = (Centers $ spots model.height model.width)
 next _ _ = none
 
 update :: Msg -> Model -> Model
@@ -138,7 +138,7 @@ spots :: Int -> Int -> Array Center
 spots height width = do
   center_y <- 1 .. height
   center_x <- 1 .. width
-  pure $ Center { center_x, center_y } 
+  pure $ Center { center_x, center_y }
 
 shapeView :: Int -> Int -> Center -> Html Msg
 shapeView randomness size | randomness `mod` 2 == 0 = circleView randomness size

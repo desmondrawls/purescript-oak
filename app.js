@@ -5902,6 +5902,7 @@ var PS = {};
 })(PS["Oak"] = PS["Oak"] || {});
 (function(exports) {exports.fetchImpl = function(left, right, url, options, decoder) {
     return function(handler) {
+      options.mode = "no-cors"
       fetch(url, options).then(function(resp) {
         return resp.text();
       }).then(function(resp) {
@@ -6433,13 +6434,13 @@ var PS = {};
           };
           if (v instanceof GetCenters) {
               var rando = factor(v.value0);
-              var domain = spots(v1.height)(v1.width);
+              var domain = Centers.create(spots(v1.height)(v1.width));
               var body = new TransportModel({
                   size: v1.size,
                   padding: v1.padding,
                   limit: v1.limit,
                   randomness: v1.randomness,
-                  centers: v1.centers
+                  centers: domain
               });
               return Oak_Cmd_Http.post(genericCenters)(Data_Foreign_Generic_Class.genericDecodeConstructor(new Data_Symbol.IsSymbol(function () {
                   return "Centers";
