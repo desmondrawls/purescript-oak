@@ -5902,7 +5902,7 @@ var PS = {};
 })(PS["Oak"] = PS["Oak"] || {});
 (function(exports) {exports.fetchImpl = function(left, right, url, options, decoder) {
     return function(handler) {
-      options.mode = "no-cors"
+      console.log("options: ", options)
       fetch(url, options).then(function(resp) {
         return resp.text();
       }).then(function(resp) {
@@ -6319,13 +6319,13 @@ var PS = {};
           return model;
       };
   };
-  var spots = function (height) {
-      return function (width) {
-          return Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(height))(function (v) {
-              return Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(width))(function (v1) {
+  var spots = function (x) {
+      return function (y) {
+          return Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(20))(function (v) {
+              return Control_Bind.bind(Control_Bind.bindArray)(Data_Array.range(1)(20))(function (v1) {
                   return Control_Applicative.pure(Control_Applicative.applicativeArray)(new Center({
-                      center_x: v1,
-                      center_y: v
+                      center_x: v,
+                      center_y: v1
                   }));
               });
           });
@@ -6335,10 +6335,10 @@ var PS = {};
   var init = function (v) {
       return {
           randomness: 50,
-          height: 700,
-          width: 1400,
-          size: 40,
-          padding: 15,
+          height: 70,
+          width: 140,
+          size: 4,
+          padding: 1,
           limit: 10,
           centers: new Centers([  ]),
           error: ""
@@ -6456,7 +6456,7 @@ var PS = {};
                   return "randomness";
               }))(Data_Foreign_Class.intEncode))(Data_Foreign_Generic_Class.genericEncodeFieldsField(new Data_Symbol.IsSymbol(function () {
                   return "size";
-              }))(Data_Foreign_Class.intEncode))))))))("http://localhost:8080")(body)(GotCenters.create(rando));
+              }))(Data_Foreign_Class.intEncode))))))))("http://localhost:8082/http://localhost:8080/")(body)(GotCenters.create(rando));
           };
           return Oak_Cmd.none;
       };

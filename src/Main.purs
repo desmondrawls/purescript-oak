@@ -88,7 +88,7 @@ next GetRandom _ =
 next (GetCenters randomness) model
     = post url body $ GotCenters rando
   where
-    url = "http://localhost:8080"
+    url = "http://localhost:8082/http://localhost:8080/"
     body = (TransportModel { size: model.size, padding: model.padding, limit: model.limit, randomness: model.randomness, centers: domain })
     rando = factor randomness
     domain = (Centers $ spots model.height model.width)
@@ -105,10 +105,10 @@ update msg model =
 init :: Unit -> Model
 init _ =
   { randomness: 50,
-    height: 700,
-    width: 1400,
-    size: 40,
-    padding: 15,
+    height: 70,
+    width: 140,
+    size: 4,
+    padding: 1,
     limit: 10,
     centers: (Centers []),
     error: ""
@@ -135,10 +135,10 @@ manyShapes { randomness, size, centers: (Centers cents) } =
     map (shapeView randomness size) cents
 
 spots :: Int -> Int -> Array Center
-spots height width = do
-  center_y <- 1 .. height
-  center_x <- 1 .. width
-  pure $ Center { center_x, center_y }
+spots x y = do
+  center_x <- 1 .. 20
+  center_y <- 1 .. 20
+  pure $ (Center {center_x, center_y})
 
 shapeView :: Int -> Int -> Center -> Html Msg
 shapeView randomness size | randomness `mod` 2 == 0 = circleView randomness size
