@@ -6337,10 +6337,10 @@ var PS = {};
   var init = function (v) {
       return {
           randomness: 50,
-          height: 30,
-          width: 30,
+          height: 50,
+          width: 50,
           size: 2,
-          padding: 1,
+          padding: 10,
           limit: 10,
           centers: [  ],
           error: ""

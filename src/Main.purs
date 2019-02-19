@@ -48,9 +48,6 @@ data Msg
   | GetCenters Number
   | GotCenters Int (Either String Centers)
 
-serverURL :: String
-serverURL = "http://localhost:8082/http://localhost:8080/"
-
 next :: forall c. Msg -> Model -> Cmd (http :: HTTP, random :: RANDOM | c) Msg
 next GetRandom _ =
   generate GetCenters
@@ -63,6 +60,19 @@ next (GetCenters randomness) model
     domain = (Centers $ spots model.height model.width)
 next _ _ = none
 
+serverURL :: String
+serverURL = "http://localhost:8082/http://localhost:8080/"
+
+factor :: Number -> Int
+factor randomness =
+ floor $ randomness * 100.0
+
+spots :: Int -> Int -> Array Center
+spots x y = do
+  center_x <- 1 .. x
+  center_y <- 1 .. y
+  pure $ (Center {center_x, center_y})
+
 update :: Msg -> Model -> Model
 update (GotCenters randomness (Right centers)) model =
   model { randomness = randomness, centers = centers, error = "" }
@@ -74,10 +84,10 @@ update msg model =
 init :: Unit -> Model
 init _ =
   { randomness: 50,
-    height: 30,
-    width: 30,
+    height: 50,
+    width: 50,
     size: 2,
-    padding: 1,
+    padding: 10,
     limit: 10,
     centers: (Centers []),
     error: ""
@@ -96,19 +106,9 @@ view model =
           shapes = 
               (manyShapes model)
 
-factor :: Number -> Int
-factor randomness =
- floor $ randomness * 100.0
-
 manyShapes :: Model -> Array (Html Msg)
 manyShapes { randomness, size, centers: (Centers cents) } =
     map (shapeView randomness size) cents
-
-spots :: Int -> Int -> Array Center
-spots x y = do
-  center_x <- 1 .. x
-  center_y <- 1 .. y
-  pure $ (Center {center_x, center_y})
 
 shapeView :: Int -> Int -> Center -> Html Msg
 shapeView randomness size | randomness `mod` 2 == 0 = circleView randomness size
