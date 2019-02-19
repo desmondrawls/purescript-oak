@@ -3,6 +3,7 @@ module Main (main) where
 import Prelude
 import Control.Alt
 import Data.Array ( take, (!!), concat, length, filter, (..) )
+import Data.String as String
 import Data.Tuple
 import Data.Maybe
 import Data.Either
@@ -47,13 +48,16 @@ data Msg
   | GetCenters Number
   | GotCenters Int (Either String Centers)
 
+serverURL :: String
+serverURL = "http://localhost:8082/http://localhost:8080/"
+
 next :: forall c. Msg -> Model -> Cmd (http :: HTTP, random :: RANDOM | c) Msg
 next GetRandom _ =
   generate GetCenters
 next (GetCenters randomness) model
     = post url body $ GotCenters rando
   where
-    url = "http://localhost:8082/http://localhost:8080/"
+    url = serverURL
     body = (TransportModel { size: model.size, padding: model.padding, limit: model.limit, randomness: model.randomness, centers: domain })
     rando = factor randomness
     domain = (Centers $ spots model.height model.width)
@@ -61,7 +65,7 @@ next _ _ = none
 
 update :: Msg -> Model -> Model
 update (GotCenters randomness (Right centers)) model =
-  model { randomness = randomness, centers = centers }
+  model { randomness = randomness, centers = centers, error = "" }
 update (GotCenters randomness (Left error)) model =
   model { randomness = randomness, error = error }
 update msg model =
@@ -84,7 +88,7 @@ view model =
     div [] 
         [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
         , div [] [ text ("The quantity: " <> (show $ length shapes)) ]
-        , div [] [ text ("Elegant malfunction: " <> (show model.error)) ]
+        , div [] [ text (if (0 < String.length model.error) then ("An elegant error has occurred: " <> (show model.error)) else "") ]
         , svg [ id_ ("svg-" <> show model.randomness), key_ ("svg-" <> show model.randomness), style [backgroundColor "blue"], height model.height, width model.width, onClick GetRandom ] 
           shapes
         ]
