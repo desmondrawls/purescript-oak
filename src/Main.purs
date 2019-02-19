@@ -21,6 +21,7 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Foreign.Class (class Decode, class Encode)
 
 import Oak
+import Models
 import Oak.Html ( Html, div, svg, circle, rect, text )
 import Oak.Html.Events
 import Oak.Html.Attribute ( id_, key_, style, cx, cy, r, fill, x, y, height, width, id_ )
@@ -40,42 +41,6 @@ type Model =
     centers :: Centers,
     error :: String
   }
-
-data TransportModel = TransportModel { size :: Int, padding :: Int, limit :: Int, randomness :: Int, centers :: Centers }
-
-instance showTransportModel :: Show TransportModel where 
-  show = genericShow
-
-derive instance genericTransportModel :: Generic TransportModel _
-
-instance encodeTransportModel :: Encode TransportModel where
-  encode = defaultEncode
-
-data Center = Center { center_x :: Int, center_y :: Int }
-
-instance showCenter :: Show Center where 
-  show = genericShow
-
-derive instance genericCenter :: Generic Center _
-
-instance decodeCenter :: Decode Center where
-  decode = defaultDecode
-
-instance encodeCenter :: Encode Center where
-  encode = defaultEncode
-
-data Centers = Centers (Array Center)
-
-instance showCenters :: Show Centers where 
-  show = genericShow
-
-derive instance genericCenters :: Generic Centers _
-
-instance decodeCenters :: Decode Centers where
-  decode = defaultDecode
-
-instance encodeCenters :: Encode Centers where
-  encode = defaultEncode
 
 data Msg
   = GetRandom
@@ -105,9 +70,9 @@ update msg model =
 init :: Unit -> Model
 init _ =
   { randomness: 50,
-    height: 70,
-    width: 140,
-    size: 4,
+    height: 30,
+    width: 30,
+    size: 2,
     padding: 1,
     limit: 10,
     centers: (Centers []),
@@ -119,6 +84,7 @@ view model =
     div [] 
         [ div [] [ text "The laws of physics are only patterns, beginning with quantities." ]
         , div [] [ text ("The quantity: " <> (show $ length shapes)) ]
+        , div [] [ text ("Elegant malfunction: " <> (show model.error)) ]
         , svg [ id_ ("svg-" <> show model.randomness), key_ ("svg-" <> show model.randomness), style [backgroundColor "blue"], height model.height, width model.width, onClick GetRandom ] 
           shapes
         ]
@@ -136,8 +102,8 @@ manyShapes { randomness, size, centers: (Centers cents) } =
 
 spots :: Int -> Int -> Array Center
 spots x y = do
-  center_x <- 1 .. 20
-  center_y <- 1 .. 20
+  center_x <- 1 .. x
+  center_y <- 1 .. y
   pure $ (Center {center_x, center_y})
 
 shapeView :: Int -> Int -> Center -> Html Msg

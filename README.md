@@ -79,3 +79,4 @@ main = do
   container <- getElementById "app"
   appendChildNode container rootNode
 ```
+pulp browserify -O > app.js
